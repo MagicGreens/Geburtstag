@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html lang="de">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Geburtstags-Countdown</title>
+    <style>
+        :root {
+            --bg-color: #e0e5ec;
+            --text-color: #4a5568;
+            --shadow-light: rgba(255, 255, 255, 0.8);
+            --shadow-dark: rgba(163, 177, 198, 0.6);
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            margin: 0;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+        }
+
+        .container {
+            width: 90%;
+            max-width: 600px;
+            padding: 40px 20px;
+            border-radius: 20px;
+            background: var(--bg-color);
+            box-shadow: 9px 9px 16px var(--shadow-dark),
+                -9px -9px 16px var(--shadow-light);
+        }
+
+        h1 {
+            font-weight: 600;
+            margin-top: 0;
+            margin-bottom: 30px;
+            font-size: 1.8rem;
+        }
+
+        .countdown {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin-bottom: 40px;
+            flex-wrap: wrap;
+        }
+
+        .time-box {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            width: 80px;
+            height: 80px;
+            border-radius: 15px;
+            background: var(--bg-color);
+            box-shadow: 6px 6px 12px var(--shadow-dark),
+                -6px -6px 12px var(--shadow-light);
+        }
+
+        .time-box .number {
+            font-size: 1.8rem;
+            font-weight: bold;
+        }
+
+        .time-box .label {
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-top: 2px;
+        }
+
+        .hint-container {
+            margin-top: 20px;
+            padding: 25px;
+            border-radius: 15px;
+            background: var(--bg-color);
+            /* Inset-Schatten für einen "eingedrückten" Look */
+            box-shadow: inset 6px 6px 10px 0 var(--shadow-dark),
+                inset -6px -6px 10px 0 var(--shadow-light);
+        }
+
+        .hint-title {
+            font-size: 0.9rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            margin-bottom: 10px;
+            color: #718096;
+        }
+
+        #hint-text {
+            font-size: 1.2rem;
+            font-style: italic;
+        }
+
+        .hidden {
+            display: none !important;
+        }
+
+        #birthday-message {
+            font-size: 2rem;
+            font-weight: bold;
+            color: #d53f8c;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0% {
+                transform: scale(1);
+            }
+
+            50% {
+                transform: scale(1.05);
+            }
+
+            100% {
+                transform: scale(1);
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="container">
+        <h1 id="main-title">Der Countdown läuft! 🎈</h1>
+
+        <div class="countdown" id="countdown">
+            <div class="time-box">
+                <div class="number" id="days">0</div>
+                <div class="label">Tage</div>
+            </div>
+            <div class="time-box">
+                <div class="number" id="hours">0</div>
+                <div class="label">Std</div>
+            </div>
+            <div class="time-box">
+                <div class="number" id="minutes">0</div>
+                <div class="label">Min</div>
+            </div>
+            <div class="time-box">
+                <div class="number" id="seconds">0</div>
+                <div class="label">Sek</div>
+            </div>
+        </div>
+
+        <div id="hint-container" class="hint-container hidden">
+            <div class="hint-title">Tageshinweis</div>
+            <div id="hint-text"></div>
+        </div>
+
+        <div id="birthday-message" class="hidden">Alles Gute zum Geburtstag! 🎂🎁</div>
+    </div>
+
+    <script>
+        // 1. Zieldatum anpassen (Format: YYYY-MM-DDTHH:MM:SS)
+        // Beispiel: 26. Oktober 2026, Punkt Mitternacht
+        const targetDate = new Date("2026-10-26T00:00:00").getTime();
+
+        // 2. Die 13 Hinweise eintragen (Von Tag 13 bis Tag 1 vor dem Geburtstag)
+        const hints = [
+            "Hinweis für 13 Tage vorher: Erste Spur...",
+            "Hinweis für 12 Tage vorher: ...",
+            "Hinweis für 11 Tage vorher: ...",
+            "Hinweis für 10 Tage vorher: ...",
+            "Hinweis für 9 Tage vorher: ...",
+            "Hinweis für 8 Tage vorher: ...",
+            "Hinweis für 7 Tage vorher: ...",
+            "Hinweis für 6 Tage vorher: ...",
+            "Hinweis für 5 Tage vorher: ...",
+            "Hinweis für 4 Tage vorher: ...",
+            "Hinweis für 3 Tage vorher: ...",
+            "Hinweis für 2 Tage vorher: Fast geschafft...",
+            "Hinweis für 1 Tag vorher: Morgen ist es soweit!"
+        ];
+
+        function updateCountdown() {
+            const now = new Date().getTime();
+            const distance = targetDate - now;
+
+            if (distance > 0) {
+                const days = Math.floor(distance / (1000 * 60 * 60 * 24));
+                const hours = Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+                const minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
+                const seconds = Math.floor((distance % (1000 * 60)) / 1000);
+
+                document.getElementById("days").innerText = days;
+                document.getElementById("hours").innerText = hours;
+                document.getElementById("minutes").innerText = minutes;
+                document.getElementById("seconds").innerText = seconds;
+
+                // Berechnet die verbleibenden Kalendertage bis zum Ziel
+                const daysLeft = Math.ceil(distance / (1000 * 60 * 60 * 24));
+
+                // Wenn wir genau im 13-Tage-Fenster sind
+                if (daysLeft <= 13 && daysLeft > 0) {
+                    document.getElementById("hint-container").classList.remove("hidden");
+                    const hintIndex = 13 - daysLeft; // daysLeft=13 ergibt Index 0, daysLeft=1 ergibt Index 12
+                    document.getElementById("hint-text").innerText = hints[hintIndex];
+                } else {
+                    document.getElementById("hint-container").classList.add("hidden");
+                }
+            } else {
+                // Countdown ist abgelaufen
+                clearInterval(timerInterval);
+                document.getElementById("countdown").classList.add("hidden");
+                document.getElementById("hint-container").classList.add("hidden");
+                document.getElementById("main-title").classList.add("hidden");
+                document.getElementById("birthday-message").classList.remove("hidden");
+            }
+        }
+
+        const timerInterval = setInterval(updateCountdown, 1000);
+        updateCountdown(); 
+    </script>
+</body>
+
+</html>
